@@ -22,4 +22,4 @@ jobs:
           LIB_USER_ID: ${{ secrets.LIB_USER_ID }}
           LIB_PASSWORD: ${{ secrets.LIB_PASSWORD }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python check_books.py
+        run: python main.py
