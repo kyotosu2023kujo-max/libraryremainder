@@ -2,24 +2,31 @@ name: Check Library Books
 
 on:
   schedule:
-    - cron: '0 23 * * *' # UTC 23:00 = JST 8:00
-  workflow_dispatch: # 手動実行用
+    # 毎日日本時間の朝8:00に自動実行 (UTC 23:00)
+    - cron: '0 23 * * *'
+  workflow_dispatch: # Actionsタブから手動実行ボタンを押せるようにする設定
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Install dependencies
         run: |
           pip install playwright requests
           playwright install --with-deps chromium
+
       - name: Run script
         env:
           LIB_USER_ID: ${{ secrets.LIB_USER_ID }}
           LIB_PASSWORD: ${{ secrets.LIB_PASSWORD }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
         run: python main.py
