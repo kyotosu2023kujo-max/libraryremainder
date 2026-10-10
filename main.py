@@ -57,7 +57,10 @@ def check_books_and_notify():
 
         page.wait_for_load_state("networkidle")
 
-        # 3. 貸出一覧の各行を解析
+        # 3. 貸出一覧ページ（lenlst.do）へ明示的に遷移
+        page.goto("https://ksucat2.kyoto-su.ac.jp/webopac/lenlst.do", wait_until="networkidle")
+
+        # 4. 貸出一覧テーブルの各行を解析
         rows = page.query_selector_all("table tr")
         all_books = []
         today = date.today()
@@ -67,28 +70,26 @@ def check_books_and_notify():
             if not cols:
                 continue
 
-            # 各セルのテキストを取得
             col_texts = [col.inner_text().strip() for col in cols]
             row_full_text = " ".join(col_texts)
 
-            # 行の中に日付が含まれているかチェック (YYYY/MM/DD)
+            # 行の中に日付 (YYYY/MM/DD) を探す
             dates = re.findall(r'\b\d{4}/\d{2}/\d{2}\b', row_full_text)
             if not dates:
                 continue
 
-            # 1つ目の日付が「返却期限日」（2つ目は貸出日）
+            # 1つ目の日付が「返却期限日」
             due_date_str = dates[0]
             due_date = datetime.strptime(due_date_str, "%Y/%m/%d").date()
             days_left = (due_date - today).days
 
-            # 「書誌事項」セル（スラッシュや改行を含むタイトル文字列）を探す
+            # 書誌事項（タイトル）を抽出
             title = "書籍"
             for t in col_texts:
                 if "/" in t and ("著" in t or "訳" in t or "編" in t or "シリーズ" in t or "\n" in t):
                     title = t.split("\n")[0].strip()
                     break
 
-            # 状態に応じたマーク
             if days_left < 0:
                 badge = f"⚠️【期限超過 {abs(days_left)}日】"
             elif days_left == 0:
@@ -98,12 +99,11 @@ def check_books_and_notify():
             else:
                 badge = f"📖【あと{days_left}日】"
 
-            book_info = f"{badge} 返却期日: {due_date_str}\n{title}"
-            all_books.append(book_info)
+            all_books.append(f"{badge} 返却期日: {due_date_str}\n{title}")
 
         browser.close()
 
-        # 4. ログ出力 & LINE送信
+        # 5. ログ出力 & LINE送信
         if all_books:
             message = f"📚 借りている本の一覧（全{len(all_books)}冊）\n\n" + "\n\n".join(all_books)
             print("=== 取得結果 ===")
