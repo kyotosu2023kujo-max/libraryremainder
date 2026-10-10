@@ -15,7 +15,7 @@ def check_books_and_notify():
 
         # 1. ログイン画面へアクセス
         # ※ 実際のログインURLに置き換えてください
-        login_url = "https://ksucat2.kyoto-su.ac.jp/webopac/login.do"
+        login_url = "https://ksucat2.kyoto-su.ac.jp/webopac/asklst.do"
         page.goto(login_url)
 
         # フォームのセレクタに合わせて入力・送信
